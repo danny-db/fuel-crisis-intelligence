@@ -39,21 +39,10 @@ resources:
       tags:
         project: fuel-crisis-intelligence
         domain: data-ingestion
-      job_clusters:
-        - job_cluster_key: classic
-          new_cluster:
-            spark_version: "16.2.x-scala2.12"
-            node_type_id: "m5d.large"
-            num_workers: 0
-            spark_conf:
-              spark.databricks.cluster.profile: singleNode
-              spark.master: "local[*]"
-            custom_tags:
-              ResourceClass: SingleNode
       tasks:
         - task_key: sa_fuel_data
           description: "SA-focused data ingestion (AIP, petroleum stats, NGER, diesel plants, minerals)"
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./01_fuel_crisis_ingestion.py
             base_parameters:
@@ -65,7 +54,7 @@ resources:
           description: "National expansion (retail prices, imports/exports, OECD, IEA, energy stats, QLD prices, minerals WFS)"
           depends_on:
             - task_key: sa_fuel_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./02_national_fuel_crisis_ingestion.py
             base_parameters:
@@ -77,13 +66,18 @@ resources:
           description: "Global enrichment (FRED, EIA, ABS, FuelWatch, GA infrastructure, freight, conflict scenario)"
           depends_on:
             - task_key: national_fuel_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./03_enrichment_ingestion.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
               warehouse_id: ${var.warehouse_id}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
 
     # ============================================================
     # Job 2: Create Story Dashboard (depends on ingestion)
@@ -94,26 +88,20 @@ resources:
       tags:
         project: fuel-crisis-intelligence
         domain: dashboard
-      job_clusters:
-        - job_cluster_key: classic
-          new_cluster:
-            spark_version: "16.2.x-scala2.12"
-            node_type_id: "m5d.large"
-            num_workers: 0
-            spark_conf:
-              spark.databricks.cluster.profile: singleNode
-              spark.master: "local[*]"
-            custom_tags:
-              ResourceClass: SingleNode
       tasks:
         - task_key: create_dashboard
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./05_create_story_dashboard.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
               warehouse_id: ${var.warehouse_id}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
 
     # ============================================================
     # Job 3: Create Genie Space (depends on ingestion)
@@ -124,26 +112,20 @@ resources:
       tags:
         project: fuel-crisis-intelligence
         domain: genie
-      job_clusters:
-        - job_cluster_key: classic
-          new_cluster:
-            spark_version: "16.2.x-scala2.12"
-            node_type_id: "m5d.large"
-            num_workers: 0
-            spark_conf:
-              spark.databricks.cluster.profile: singleNode
-              spark.master: "local[*]"
-            custom_tags:
-              ResourceClass: SingleNode
       tasks:
         - task_key: create_genie_space
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./06_create_enhanced_genie_space.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
               warehouse_id: ${var.warehouse_id}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
 
     # ============================================================
     # Job 4: Setup Lakebase PostGIS for MVT Tiles
@@ -154,26 +136,20 @@ resources:
       tags:
         project: fuel-crisis-intelligence
         domain: lakebase
-      job_clusters:
-        - job_cluster_key: classic
-          new_cluster:
-            spark_version: "16.2.x-scala2.12"
-            node_type_id: "m5d.large"
-            num_workers: 0
-            spark_conf:
-              spark.databricks.cluster.profile: singleNode
-              spark.master: "local[*]"
-            custom_tags:
-              ResourceClass: SingleNode
       tasks:
         - task_key: setup_lakebase
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./07_setup_lakebase_tiles.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
               warehouse_id: ${var.warehouse_id}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
 
     # ============================================================
     # Job 5: Full Pipeline Orchestrator (runs everything in order)
@@ -184,21 +160,10 @@ resources:
       tags:
         project: fuel-crisis-intelligence
         domain: orchestration
-      job_clusters:
-        - job_cluster_key: classic
-          new_cluster:
-            spark_version: "16.2.x-scala2.12"
-            node_type_id: "m5d.large"
-            num_workers: 0
-            spark_conf:
-              spark.databricks.cluster.profile: singleNode
-              spark.master: "local[*]"
-            custom_tags:
-              ResourceClass: SingleNode
       tasks:
         # Stage 1: Ingest all data
         - task_key: sa_fuel_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./01_fuel_crisis_ingestion.py
             base_parameters:
@@ -209,7 +174,7 @@ resources:
         - task_key: national_fuel_data
           depends_on:
             - task_key: sa_fuel_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./02_national_fuel_crisis_ingestion.py
             base_parameters:
@@ -220,7 +185,7 @@ resources:
         - task_key: enrichment_data
           depends_on:
             - task_key: national_fuel_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./03_enrichment_ingestion.py
             base_parameters:
@@ -232,7 +197,7 @@ resources:
         - task_key: create_dashboard
           depends_on:
             - task_key: enrichment_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./05_create_story_dashboard.py
             base_parameters:
@@ -243,7 +208,7 @@ resources:
         - task_key: create_genie_space
           depends_on:
             - task_key: enrichment_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./06_create_enhanced_genie_space.py
             base_parameters:
@@ -255,13 +220,18 @@ resources:
         - task_key: setup_lakebase
           depends_on:
             - task_key: enrichment_data
-          job_cluster_key: classic
+          environment_key: default
           notebook_task:
             notebook_path: ./07_setup_lakebase_tiles.py
             base_parameters:
               catalog: ${var.catalog}
               schema: ${var.schema}
               warehouse_id: ${var.warehouse_id}
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
 
   # ============================================================
   # Databricks App: Fuel Crisis Command Centre

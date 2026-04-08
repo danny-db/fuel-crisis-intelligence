@@ -1,0 +1,277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0a0f;
+  color: #e5e5e5;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.maplibregl-popup-content {
+  background: #1a1a2e !important;
+  color: #e5e5e5 !important;
+  border: 1px solid #333 !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 13px;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #1a1a2e !important;
+}
+
+.maplibregl-popup-close-button {
+  color: #999 !important;
+  font-size: 18px;
+}
+
+/* ============================================================
+   CLASSIFIED BRIEFING — Markdown Content Styles
+   ============================================================ */
+
+.briefing-content {
+  line-height: 1.75;
+  color: #d1d5db;
+}
+
+/* --- Headings ------------------------------------------------ */
+.briefing-content h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #991b1b;
+}
+
+.briefing-content h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid #dc2626;
+}
+
+.briefing-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #d1d5db;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid #b91c1c;
+}
+
+/* First heading inside the briefing should not have top margin */
+.briefing-content > h1:first-child,
+.briefing-content > h2:first-child,
+.briefing-content > h3:first-child {
+  margin-top: 0;
+}
+
+/* --- Paragraphs ---------------------------------------------- */
+.briefing-content p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #d1d5db;
+}
+
+/* --- Bold / Strong ------------------------------------------- */
+.briefing-content strong {
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+/* --- Emphasis ------------------------------------------------ */
+.briefing-content em {
+  color: #e5e7eb;
+  font-style: italic;
+}
+
+/* --- Lists --------------------------------------------------- */
+.briefing-content ul,
+.briefing-content ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.briefing-content ul {
+  list-style-type: disc;
+}
+
+.briefing-content ol {
+  list-style-type: decimal;
+}
+
+.briefing-content li {
+  color: #d1d5db;
+  margin-bottom: 0.25rem;
+  padding-left: 0.25rem;
+}
+
+.briefing-content li::marker {
+  color: #dc2626;
+}
+
+/* --- Tables -------------------------------------------------- */
+.briefing-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.briefing-content thead {
+  background: #1f2937;
+}
+
+.briefing-content thead th {
+  color: #f3f4f6;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #374151;
+  text-align: left;
+}
+
+.briefing-content tbody tr {
+  background: transparent;
+}
+
+.briefing-content tbody tr:nth-child(even) {
+  background: rgba(31, 41, 55, 0.4);
+}
+
+.briefing-content tbody tr:hover {
+  background: rgba(55, 65, 81, 0.5);
+}
+
+.briefing-content tbody td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #1f2937;
+  color: #d1d5db;
+}
+
+/* --- Blockquotes / Callouts ---------------------------------- */
+.briefing-content blockquote {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #dc2626;
+  background: rgba(153, 27, 27, 0.15);
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.briefing-content blockquote p {
+  color: #fca5a5;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* --- Horizontal Rules ---------------------------------------- */
+.briefing-content hr {
+  border: none;
+  border-top: 1px solid #374151;
+  margin: 1.5rem 0;
+}
+
+/* --- Code (inline) ------------------------------------------- */
+.briefing-content code {
+  font-size: 0.85em;
+  background: rgba(31, 41, 55, 0.7);
+  color: #fca5a5;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+/* --- Links --------------------------------------------------- */
+.briefing-content a {
+  color: #f87171;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.briefing-content a:hover {
+  color: #fca5a5;
+}
+
+/* ============================================================
+   CLASSIFIED HEADER / FOOTER BANNER
+   ============================================================ */
+
+.classified-banner {
+  text-align: center;
+  padding: 0.625rem 1rem;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 10px,
+    rgba(153, 27, 27, 0.08) 10px,
+    rgba(153, 27, 27, 0.08) 20px
+  );
+  border: 1px solid #991b1b;
+  border-radius: 0.25rem;
+}
+
+.classified-banner .classification {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.classified-banner .subtitle {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.125rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.classified-banner .meta {
+  font-size: 0.65rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* ============================================================
+   DATA INTEGRITY NOTICE — auto-detected via keyword
+   ============================================================ */
+.briefing-content p:last-child strong,
+.briefing-content blockquote:last-child p {
+  /* Catches trailing notices in the LLM output */
+}
+
+/* Warning-style paragraphs containing "DATA INTEGRITY" or "NOTICE" */
+.briefing-notice {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-left: 4px solid #eab308;
+  border-radius: 0 0.375rem 0.375rem 0;
+  color: #fde68a;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}

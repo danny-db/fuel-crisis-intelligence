@@ -1,0 +1,2302 @@
+{
+  "datasets": [
+    {
+      "name": "brent_latest",
+      "displayName": "Brent Latest",
+      "queryLines": [
+        "SELECT\n",
+        "  price_usd_per_barrel\n",
+        "FROM\n",
+        "  danny_catalog.dem_schema.brent_crude_oil_prices\n",
+        "ORDER BY\n",
+        "  date DESC\n",
+        "LIMIT 1"
+      ]
+    },
+    {
+      "name": "aud_latest",
+      "displayName": "AUD/USD Latest",
+      "queryLines": [
+        "SELECT aud_usd as aud_usd_rate FROM danny_catalog.dem_schema.conflict_scenario_overlay ORDER BY scenario_date DESC LIMIT 1"
+      ]
+    },
+    {
+      "name": "opec_latest",
+      "displayName": "OPEC Production (Latest Month)",
+      "queryLines": [
+        "SELECT country, value_tbpd FROM danny_catalog.dem_schema.opec_production_by_country WHERE period = (SELECT MAX(period) FROM danny_catalog.dem_schema.opec_production_by_country) AND value_tbpd IS NOT NULL ORDER BY value_tbpd DESC"
+      ]
+    },
+    {
+      "name": "iran_share",
+      "displayName": "Iran OPEC Share",
+      "queryLines": [
+        "SELECT ROUND(\n",
+        "        (SELECT value_tbpd FROM danny_catalog.dem_schema.opec_production_by_country WHERE country='Iran' AND period=(SELECT MAX(period) FROM danny_catalog.dem_schema.opec_production_by_country))\n",
+        "        / (SELECT SUM(value_tbpd) FROM danny_catalog.dem_schema.opec_production_by_country WHERE period=(SELECT MAX(period) FROM danny_catalog.dem_schema.opec_production_by_country))\n",
+        "        * 100, 1\n",
+        "    ) as iran_pct"
+      ]
+    },
+    {
+      "name": "imports_by_country",
+      "displayName": "Crude Imports by Country",
+      "queryLines": [
+        "SELECT\n",
+        "  CASE\n",
+        "    WHEN COALESCE(TRIM(Source_country), '') = '' THEN 'Unknown'\n",
+        "    ELSE TRIM(Source_country)\n",
+        "  END as source_country,\n",
+        "  ROUND(SUM(`Crude_oil_&_other_refinery_feedstocks_ML`), 1) as import_volume_ml\n",
+        "FROM\n",
+        "  danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "WHERE\n",
+        "  `Crude_oil_&_other_refinery_feedstocks_ML` IS NOT NULL\n",
+        "GROUP BY\n",
+        "  1\n",
+        "HAVING\n",
+        "  SUM(`Crude_oil_&_other_refinery_feedstocks_ML`) > 0\n",
+        "ORDER BY\n",
+        "  import_volume_ml DESC\n",
+        "LIMIT 15"
+      ]
+    },
+    {
+      "name": "iea_days",
+      "displayName": "IEA Days of Coverage",
+      "queryLines": [
+        "SELECT * FROM danny_catalog.dem_schema.petroleum_iea_days_coverage"
+      ]
+    },
+    {
+      "name": "iea_latest",
+      "displayName": "IEA Latest",
+      "queryLines": [
+        "SELECT COUNT(*) as cnt FROM danny_catalog.dem_schema.petroleum_iea_days_coverage"
+      ]
+    },
+    {
+      "name": "oecd_prices",
+      "displayName": "OECD Fuel Prices",
+      "queryLines": [
+        "SELECT * FROM danny_catalog.dem_schema.petroleum_fuel_prices_oecd"
+      ]
+    },
+    {
+      "name": "wholesale_by_city",
+      "displayName": "Wholesale Prices by City",
+      "queryLines": [
+        "SELECT city, fuel_type, ROUND(AVG(price_cpl), 1) as avg_price_cpl\n",
+        "    FROM danny_catalog.dem_schema.aip_terminal_gate_prices\n",
+        "    WHERE year_period = (SELECT MAX(year_period) FROM danny_catalog.dem_schema.aip_terminal_gate_prices)\n",
+        "    GROUP BY city, fuel_type\n",
+        "    ORDER BY city"
+      ]
+    },
+    {
+      "name": "cpi_fuel",
+      "displayName": "Scenario Pump Prices by Phase",
+      "queryLines": [
+        "SELECT phase, day_number, adelaide_ulp_cpl, brent_usd_bbl, aud_usd\n",
+        "    FROM danny_catalog.dem_schema.conflict_scenario_overlay\n",
+        "    ORDER BY day_number"
+      ]
+    },
+    {
+      "name": "aud_trend",
+      "displayName": "AUD/USD Trend (Scenario)",
+      "queryLines": [
+        "SELECT scenario_date as date, aud_usd as aud_usd_rate FROM danny_catalog.dem_schema.conflict_scenario_overlay ORDER BY scenario_date"
+      ]
+    },
+    {
+      "name": "adelaide_ulp",
+      "displayName": "Adelaide ULP Latest",
+      "queryLines": [
+        "SELECT ROUND(AVG(price_cpl), 1) as price_cpl\n",
+        "    FROM danny_catalog.dem_schema.aip_terminal_gate_prices\n",
+        "    WHERE city = 'Adelaide' AND fuel_type = 'ULP'\n",
+        "      AND year_period = (SELECT MAX(year_period) FROM danny_catalog.dem_schema.aip_terminal_gate_prices)"
+      ]
+    },
+    {
+      "name": "sales_by_state",
+      "displayName": "Sales by State",
+      "queryLines": [
+        "SELECT * FROM danny_catalog.dem_schema.petroleum_sales_by_state_national"
+      ]
+    },
+    {
+      "name": "sales_state_agg",
+      "displayName": "Sales by State Aggregated",
+      "queryLines": [
+        "SELECT source_sheet, COUNT(*) as record_count\n",
+        "    FROM danny_catalog.dem_schema.petroleum_sales_by_state_national\n",
+        "    GROUP BY source_sheet\n",
+        "    ORDER BY record_count DESC"
+      ]
+    },
+    {
+      "name": "nger_top15",
+      "displayName": "Top 15 Corporate Emitters",
+      "queryLines": [
+        "SELECT Organisation_name,\n",
+        "        CAST(REPLACE(`Total_scope_1_emissions_t_CO2-e`, ',', '') AS BIGINT) as scope1_tonnes\n",
+        "    FROM danny_catalog.dem_schema.nger_corporate_emissions\n",
+        "    WHERE `Total_scope_1_emissions_t_CO2-e` != ''\n",
+        "    ORDER BY scope1_tonnes DESC\n",
+        "    LIMIT 15"
+      ]
+    },
+    {
+      "name": "power_by_fuel",
+      "displayName": "Power Stations by Fuel",
+      "queryLines": [
+        "SELECT Primary_fuel, COUNT(*) as station_count\n",
+        "    FROM danny_catalog.dem_schema.nger_electricity_sector\n",
+        "    WHERE Primary_fuel IS NOT NULL AND Primary_fuel != ''\n",
+        "    GROUP BY Primary_fuel\n",
+        "    ORDER BY station_count DESC"
+      ]
+    },
+    {
+      "name": "power_count",
+      "displayName": "Total Power Stations",
+      "queryLines": [
+        "SELECT COUNT(*) as cnt FROM danny_catalog.dem_schema.nger_electricity_sector"
+      ]
+    },
+    {
+      "name": "refineries",
+      "displayName": "Refineries",
+      "queryLines": [
+        "SELECT * FROM danny_catalog.dem_schema.fuel_infrastructure_refineries"
+      ]
+    },
+    {
+      "name": "refinery_count",
+      "displayName": "Operational Refineries",
+      "queryLines": [
+        "SELECT COUNT(*) as cnt FROM danny_catalog.dem_schema.fuel_infrastructure_refineries WHERE status = 'Operational'"
+      ]
+    },
+    {
+      "name": "terminals",
+      "displayName": "Fuel Terminals",
+      "queryLines": [
+        "SELECT * FROM danny_catalog.dem_schema.fuel_infrastructure_terminals"
+      ]
+    },
+    {
+      "name": "imports_by_product",
+      "displayName": "Oil Imports by Product Type",
+      "queryLines": [
+        "SELECT\n",
+        "  product_type,\n",
+        "  ROUND(SUM(volume_ml), 1) as total_ml\n",
+        "FROM\n",
+        "  (\n",
+        "    SELECT\n",
+        "      'Crude Oil & Feedstocks' as product_type,\n",
+        "      SUM(`Crude_oil_&_other_refinery_feedstocks_ML`) as volume_ml\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'LPG',\n",
+        "      SUM(LPG_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'Automotive Gasoline',\n",
+        "      SUM(Automotive_gasoline_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'Aviation Fuel',\n",
+        "      SUM(Aviation_turbine_fuel_ML) + SUM(Aviation_gasoline_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'Diesel Oil',\n",
+        "      SUM(Diesel_oil_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'Fuel Oil',\n",
+        "      SUM(Fuel_oil_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "    UNION ALL\n",
+        "    SELECT\n",
+        "      'Bitumen',\n",
+        "      SUM(Bitumen_ML)\n",
+        "    FROM\n",
+        "      danny_catalog.dem_schema.petroleum_imports_by_country\n",
+        "  ) t\n",
+        "WHERE\n",
+        "  volume_ml IS NOT NULL\n",
+        "  AND volume_ml > 0\n",
+        "GROUP BY\n",
+        "  product_type\n",
+        "ORDER BY\n",
+        "  total_ml DESC"
+      ]
+    },
+    {
+      "name": "brent_historical",
+      "displayName": "Brent Crude \u2014 Historical Monthly",
+      "queryLines": [
+        "SELECT\n",
+        "  DATE_TRUNC('MONTH', date) AS ds,\n",
+        "  AVG(price_usd_per_barrel) AS brent_price\n",
+        "FROM\n",
+        "  danny_catalog.dem_schema.brent_crude_oil_prices\n",
+        "GROUP BY\n",
+        "  1\n",
+        "ORDER BY\n",
+        "  1"
+      ]
+    },
+    {
+      "name": "brent_forecast",
+      "displayName": "Brent Crude \u2014 AI Forecast to 2028",
+      "queryLines": [
+        "WITH brent_monthly AS (\n",
+        "  SELECT\n",
+        "    DATE_TRUNC('MONTH', date) AS ds,\n",
+        "    AVG(price_usd_per_barrel) AS brent_price\n",
+        "  FROM\n",
+        "    danny_catalog.dem_schema.brent_crude_oil_prices\n",
+        "  GROUP BY\n",
+        "    1\n",
+        "  ORDER BY\n",
+        "    1\n",
+        "),\n",
+        "forecast AS (\n",
+        "  SELECT\n",
+        "    *\n",
+        "  FROM\n",
+        "    AI_FORECAST(\n",
+        "      TABLE(brent_monthly),\n",
+        "      horizon => '2028-01-01',\n",
+        "      time_col => 'ds',\n",
+        "      value_col => 'brent_price',\n",
+        "      prediction_interval_width => 0.95\n",
+        "    )\n",
+        ")\n",
+        "SELECT\n",
+        "  COALESCE(h.ds, f.ds) AS ds,\n",
+        "  h.brent_price,\n",
+        "  f.brent_price_forecast,\n",
+        "  f.brent_price_lower,\n",
+        "  f.brent_price_upper\n",
+        "FROM\n",
+        "  brent_monthly h\n",
+        "    FULL OUTER JOIN forecast f\n",
+        "      ON h.ds = f.ds\n",
+        "ORDER BY\n",
+        "  1"
+      ],
+      "columns": [
+        {
+          "displayName": "brent_price_forecast_lower",
+          "description": "Alias for forecast lower bound to match forecast-line widget naming convention.",
+          "expression": "`brent_price_lower`"
+        },
+        {
+          "displayName": "brent_price_forecast_upper",
+          "description": "Alias for forecast upper bound to match forecast-line widget naming convention.",
+          "expression": "`brent_price_upper`"
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "475032ea",
+      "displayName": "The Trigger \u2014 Global Oil Shock",
+      "layout": [
+        {
+          "widget": {
+            "name": "4aa313fa",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "brent_latest",
+                  "fields": [
+                    {
+                      "name": "avg(price_usd_per_barrel)",
+                      "expression": "AVG(`price_usd_per_barrel`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(price_usd_per_barrel)",
+                  "displayName": "Brent Crude (USD/bbl)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Brent Crude (USD/bbl)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "0cd22106",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "aud_latest",
+                  "fields": [
+                    {
+                      "name": "avg(aud_usd_rate)",
+                      "expression": "AVG(`aud_usd_rate`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(aud_usd_rate)",
+                  "displayName": "AUD/USD"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "AUD/USD"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "a7e4a716",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "iran_share",
+                  "fields": [
+                    {
+                      "name": "avg(iran_pct)",
+                      "expression": "AVG(`iran_pct`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(iran_pct)",
+                  "displayName": "Iran % of OPEC"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Iran % of OPEC"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 2,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "3f8fee37",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "opec_latest",
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "sum(value_tbpd)",
+                      "expression": "SUM(`value_tbpd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "country"
+                },
+                "y": {
+                  "fieldName": "sum(value_tbpd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "SUM of value_tbpd"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "OPEC Production by Country (Thousand bbl/day)"
+              },
+              "mark": {
+                "colors": [
+                  "#FFAB00",
+                  "#00A972",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4",
+                  "#FCA4A1",
+                  "#919191",
+                  "#BF7080"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## The Trigger \u2014 Global Oil Shock\n",
+                "Historical Brent crude prices and OPEC production set the stage. Iran produces 13.6% of OPEC output \u2014 a conflict disrupting the Strait of Hormuz would send shockwaves through global energy markets and Australia's fuel supply."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "brent_historical_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "brent_historical",
+                  "fields": [
+                    {
+                      "name": "ds",
+                      "expression": "`ds`"
+                    },
+                    {
+                      "name": "avg(brent_price)",
+                      "expression": "AVG(`brent_price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Brent Crude Oil \u2014 Historical Monthly Price (USD/bbl)",
+                "showTitle": true
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "ds",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(brent_price)",
+                  "displayName": "AVG Brent Price",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 12,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "2bb4d9b3",
+      "displayName": "Australia's Exposure",
+      "layout": [
+        {
+          "widget": {
+            "name": "0ade8a53",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "imports_by_country",
+                  "fields": [
+                    {
+                      "name": "sum(import_volume_ml)",
+                      "expression": "SUM(`import_volume_ml`)"
+                    },
+                    {
+                      "name": "source_country",
+                      "expression": "`source_country`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Crude Oil Imports \u2014 Source Countries (ML)",
+                "showTitle": true
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(import_volume_ml)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Import Volume (ML)"
+                },
+                "color": {
+                  "fieldName": "source_country",
+                  "displayName": "source_country",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "0d730d28",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "iea_latest",
+                  "fields": [
+                    {
+                      "name": "sum(cnt)",
+                      "expression": "SUM(`cnt`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(cnt)",
+                  "displayName": "IEA Coverage Records"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "IEA Coverage Records"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "a5f84ab0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "iea_days",
+                  "fields": [
+                    {
+                      "name": "monthly(Month)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `Month`)"
+                    },
+                    {
+                      "name": "avg(IEA_days_of_net_import_coverage)",
+                      "expression": "AVG(`IEA_days_of_net_import_coverage`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "IEA Days of Net Import Coverage",
+                "showTitle": true
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(Month)",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(IEA_days_of_net_import_coverage)",
+                  "displayName": "AVG of IEA Days",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 2,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "f55ca684",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "imports_by_product",
+                  "fields": [
+                    {
+                      "name": "product_type",
+                      "expression": "`product_type`"
+                    },
+                    {
+                      "name": "sum(total_ml)",
+                      "expression": "SUM(`total_ml`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Total Oil Imports by Product Type (ML)",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "product_type",
+                  "displayName": "product_type",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_ml)",
+                  "displayName": "SUM of total_ml",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Australia's Import Dependency\n",
+                "Australia imports around 90% of its refined fuel. With only 50\u201360 days of IEA coverage \u2014 well below the 90-day obligation \u2014 a supply disruption leaves the nation critically exposed."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_source_country",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c1390d4497f0d949736_source_country",
+                "query": {
+                  "datasetName": "imports_by_country",
+                  "fields": [
+                    {
+                      "name": "source_country",
+                      "expression": "`source_country`"
+                    },
+                    {
+                      "name": "source_country_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Source Country",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "source_country",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c1390d4497f0d949736_source_country"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "5a2ac516",
+      "displayName": "Impact on Consumers",
+      "layout": [
+        {
+          "widget": {
+            "name": "3b627cc7",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "adelaide_ulp",
+                  "fields": [
+                    {
+                      "name": "avg(price_cpl)",
+                      "expression": "AVG(`price_cpl`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(price_cpl)",
+                  "displayName": "Adelaide ULP (c/L)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Adelaide ULP (c/L)"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "022b9a84",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "wholesale_by_city",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "avg(avg_price_cpl)",
+                      "expression": "AVG(`avg_price_cpl`)"
+                    },
+                    {
+                      "name": "fuel_type",
+                      "expression": "`fuel_type`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "city"
+                },
+                "y": {
+                  "fieldName": "avg(avg_price_cpl)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "AVG of avg_price_cpl"
+                },
+                "label": {
+                  "show": true
+                },
+                "color": {
+                  "fieldName": "fuel_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "fuel_type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Wholesale Fuel Prices by City (c/L, Latest Year)"
+              },
+              "mark": {
+                "colors": [
+                  "#FFAB00",
+                  "#00A972",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4",
+                  "#FCA4A1",
+                  "#919191",
+                  "#BF7080"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "b0779124",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "oecd_prices",
+                  "fields": [
+                    {
+                      "name": "Fuel_Type",
+                      "expression": "`Fuel_Type`"
+                    },
+                    {
+                      "name": "Country",
+                      "expression": "`Country`"
+                    },
+                    {
+                      "name": "avg(Total_price_cpl)",
+                      "expression": "AVG(`Total_price_cpl`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "OECD Fuel Prices \u2014 Australia vs Peers (c/L)",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Country",
+                  "displayName": "Country",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(Total_price_cpl)",
+                  "displayName": "AVG Total Price (c/L)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "Fuel_Type",
+                  "displayName": "Fuel_Type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "e8aa9b6d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "aud_trend",
+                  "fields": [
+                    {
+                      "name": "day(date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date`)"
+                    },
+                    {
+                      "name": "avg(aud_usd_rate)",
+                      "expression": "AVG(`aud_usd_rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "day(date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "date"
+                },
+                "y": {
+                  "fieldName": "avg(aud_usd_rate)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "AVG of aud_usd_rate"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "AUD/USD Exchange Rate \u2014 Scenario Projection"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 7,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Consumer Price Impact\n",
+                "Rising crude prices and a weaker AUD create a double hit on Australian fuel consumers. Wholesale and retail prices surge across all capital cities."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_fuel_type",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c23887feaf0e59ef998_fuel_type",
+                "query": {
+                  "datasetName": "wholesale_by_city",
+                  "fields": [
+                    {
+                      "name": "fuel_type",
+                      "expression": "`fuel_type`"
+                    },
+                    {
+                      "name": "fuel_type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c1f8d6e1f68132d3f30_Fuel_Type",
+                "query": {
+                  "datasetName": "oecd_prices",
+                  "fields": [
+                    {
+                      "name": "Fuel_Type",
+                      "expression": "`Fuel_Type`"
+                    },
+                    {
+                      "name": "Fuel_Type_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Fuel Type",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "fuel_type",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c23887feaf0e59ef998_fuel_type"
+                  },
+                  {
+                    "fieldName": "Fuel_Type",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c1f8d6e1f68132d3f30_Fuel_Type"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "82ba4ab8",
+      "displayName": "State-by-State Vulnerability",
+      "layout": [
+        {
+          "widget": {
+            "name": "27922e7d",
+            "queries": [
+              {
+                "name": "filter_27922e7d_source_sheet",
+                "query": {
+                  "datasetName": "sales_by_state",
+                  "fields": [
+                    {
+                      "name": "source_sheet",
+                      "expression": "`source_sheet`"
+                    },
+                    {
+                      "name": "source_sheet_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-single-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "source_sheet",
+                    "displayName": "source_sheet",
+                    "queryName": "filter_27922e7d_source_sheet"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Data Source"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "4ba5b367",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "sales_state_agg",
+                  "fields": [
+                    {
+                      "name": "source_sheet",
+                      "expression": "`source_sheet`"
+                    },
+                    {
+                      "name": "sum(record_count)",
+                      "expression": "SUM(`record_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "source_sheet",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "source_sheet"
+                },
+                "y": {
+                  "fieldName": "sum(record_count)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "SUM of record_count"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Petroleum Data Records by State/Territory"
+              },
+              "mark": {
+                "colors": [
+                  "#FFAB00",
+                  "#00A972",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4",
+                  "#FCA4A1",
+                  "#919191",
+                  "#BF7080"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "d3110c6a",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "sales_by_state",
+                  "fields": [
+                    {
+                      "name": "State",
+                      "expression": "`State`"
+                    },
+                    {
+                      "name": "sum(Automotive_gasoline:_total_ML)",
+                      "expression": "SUM(`Automotive_gasoline:_total_ML`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Total Fuel Sales by State \u2014 Gasoline & Diesel (ML)",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "State",
+                  "displayName": "State",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(Automotive_gasoline:_total_ML)",
+                  "displayName": "SUM of Gasoline Total (ML)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## State-by-State Vulnerability\n",
+                "Fuel consumption varies dramatically across states. NSW and QLD consume the most gasoline and diesel, making them most vulnerable to supply disruptions."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_state",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3390fccac6a3e31353_State",
+                "query": {
+                  "datasetName": "sales_by_state",
+                  "fields": [
+                    {
+                      "name": "State",
+                      "expression": "`State`"
+                    },
+                    {
+                      "name": "State_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "State",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "State",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3390fccac6a3e31353_State"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "88e7b053",
+      "displayName": "Industry & Energy at Risk",
+      "layout": [
+        {
+          "widget": {
+            "name": "b38f1e5c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "power_count",
+                  "fields": [
+                    {
+                      "name": "sum(cnt)",
+                      "expression": "SUM(`cnt`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(cnt)",
+                  "displayName": "Total Power Stations"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Power Stations"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "94db73e7",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "nger_top15",
+                  "fields": [
+                    {
+                      "name": "Organisation_name",
+                      "expression": "`Organisation_name`"
+                    },
+                    {
+                      "name": "sum(scope1_tonnes)",
+                      "expression": "SUM(`scope1_tonnes`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Organisation_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Organisation_name"
+                },
+                "y": {
+                  "fieldName": "sum(scope1_tonnes)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "SUM of scope1_tonnes"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 15 Corporate Emitters (Scope 1, t CO2-e)"
+              },
+              "mark": {
+                "colors": [
+                  "#FFAB00",
+                  "#00A972",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4",
+                  "#FCA4A1",
+                  "#919191",
+                  "#BF7080"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "05096fc5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "power_by_fuel",
+                  "fields": [
+                    {
+                      "name": "Primary_fuel",
+                      "expression": "`Primary_fuel`"
+                    },
+                    {
+                      "name": "sum(station_count)",
+                      "expression": "SUM(`station_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Primary_fuel",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Primary_fuel"
+                },
+                "y": {
+                  "fieldName": "sum(station_count)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "SUM of station_count"
+                },
+                "label": {
+                  "show": true
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Power Stations by Primary Fuel Type"
+              },
+              "mark": {
+                "colors": [
+                  "#FFAB00",
+                  "#00A972",
+                  "#FF3621",
+                  "#8BCAE7",
+                  "#AB4057",
+                  "#99DDB4",
+                  "#FCA4A1",
+                  "#919191",
+                  "#BF7080"
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Industry & Energy Exposure\n",
+                "Australia's industrial base and power generation depend heavily on fossil fuels. A fuel crisis cascades through mining, freight, and electricity generation."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_primary_fuel",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3e993204e22d589adf_Primary_fuel",
+                "query": {
+                  "datasetName": "power_by_fuel",
+                  "fields": [
+                    {
+                      "name": "Primary_fuel",
+                      "expression": "`Primary_fuel`"
+                    },
+                    {
+                      "name": "Primary_fuel_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Primary Fuel",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "Primary_fuel",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3e993204e22d589adf_Primary_fuel"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "dea92b8c",
+      "displayName": "Infrastructure Vulnerability",
+      "layout": [
+        {
+          "widget": {
+            "name": "8a0fe8e1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "refinery_count",
+                  "fields": [
+                    {
+                      "name": "sum(cnt)",
+                      "expression": "SUM(`cnt`)"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(cnt)",
+                  "displayName": "Operational Refineries"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Operational Refineries"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "cb4b2fc1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "refineries",
+                  "fields": [
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "name",
+                      "expression": "`name`"
+                    },
+                    {
+                      "name": "sum(capacity_bpd)",
+                      "expression": "SUM(`capacity_bpd`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Refinery Capacity by Facility (bbl/day)",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "name",
+                  "displayName": "name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(capacity_bpd)",
+                  "displayName": "SUM of capacity_bpd",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "status",
+                  "displayName": "status",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "e482bf67",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "terminals",
+                  "fields": [
+                    {
+                      "name": "type",
+                      "expression": "`type`"
+                    },
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    },
+                    {
+                      "name": "count(name)",
+                      "expression": "COUNT(`name`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Fuel Terminals by State",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "state",
+                  "displayName": "state",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "count(name)",
+                  "displayName": "Terminal Count",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "type",
+                  "displayName": "type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Critical Infrastructure\n",
+                "With only 4 operational refineries and a network of import terminals, Australia's fuel infrastructure has limited redundancy against supply chain shocks."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_state",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c46af9131be7e07af98_state",
+                "query": {
+                  "datasetName": "refineries",
+                  "fields": [
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    },
+                    {
+                      "name": "state_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c4e88e3ee9b9f112d26_state",
+                "query": {
+                  "datasetName": "terminals",
+                  "fields": [
+                    {
+                      "name": "state",
+                      "expression": "`state`"
+                    },
+                    {
+                      "name": "state_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "State",
+                "showTitle": true
+              },
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "state",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c46af9131be7e07af98_state"
+                  },
+                  {
+                    "fieldName": "state",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c4e88e3ee9b9f112d26_state"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 3,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "global_filters",
+      "displayName": "Global Filters",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter_date_range",
+            "queries": [
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f13358213b13f5963a161a9b598c0a_ds",
+                "query": {
+                  "datasetName": "brent_historical",
+                  "fields": [
+                    {
+                      "name": "ds",
+                      "expression": "`ds`"
+                    },
+                    {
+                      "name": "ds_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c178c817c6afabb8046_Month",
+                "query": {
+                  "datasetName": "iea_days",
+                  "fields": [
+                    {
+                      "name": "Month",
+                      "expression": "`Month`"
+                    },
+                    {
+                      "name": "Month_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c2aa3758e0a202eb56c_date",
+                "query": {
+                  "datasetName": "aud_trend",
+                  "fields": [
+                    {
+                      "name": "date",
+                      "expression": "`date`"
+                    },
+                    {
+                      "name": "date_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3390fccac6a3e31353_Month",
+                "query": {
+                  "datasetName": "sales_by_state",
+                  "fields": [
+                    {
+                      "name": "Month",
+                      "expression": "`Month`"
+                    },
+                    {
+                      "name": "Month_associativity",
+                      "expression": "COUNT_IF(`associative_filter_predicate_group`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Date Range",
+                "showTitle": true
+              },
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "ds",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f13358213b13f5963a161a9b598c0a_ds"
+                  },
+                  {
+                    "fieldName": "Month",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c178c817c6afabb8046_Month"
+                  },
+                  {
+                    "fieldName": "date",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c2aa3758e0a202eb56c_date"
+                  },
+                  {
+                    "fieldName": "Month",
+                    "queryName": "dashboards/01f1335192f81b3289c716714dab810d/datasets/01f1335192f81c3390fccac6a3e31353_Month"
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "brent_forecast",
+      "displayName": "Brent Crude \u2014 Price & Forecast",
+      "layout": [
+        {
+          "widget": {
+            "name": "header_text",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Brent Crude Oil \u2014 Price & AI Forecast\n",
+                "Historical monthly Brent crude prices from FRED (1987\u20132026) alongside an AI-generated forecast to January 2028 with 95% prediction intervals."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "historical_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "brent_historical",
+                  "fields": [
+                    {
+                      "name": "ds",
+                      "expression": "`ds`"
+                    },
+                    {
+                      "name": "avg(brent_price)",
+                      "expression": "AVG(`brent_price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Brent Crude Oil \u2014 Historical Monthly Price (USD/bbl)",
+                "showTitle": true
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "ds",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(brent_price)",
+                  "displayName": "AVG Brent Price",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "forecast_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "brent_forecast",
+                  "fields": [
+                    {
+                      "name": "ds",
+                      "expression": "`ds`"
+                    },
+                    {
+                      "name": "brent_price",
+                      "expression": "`brent_price`"
+                    },
+                    {
+                      "name": "brent_price_forecast",
+                      "expression": "`brent_price_forecast`"
+                    },
+                    {
+                      "name": "brent_price_forecast_upper",
+                      "expression": "`brent_price_forecast_upper`"
+                    },
+                    {
+                      "name": "brent_price_forecast_lower",
+                      "expression": "`brent_price_forecast_lower`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "frame": {
+                "title": "Brent Crude Oil \u2014 AI Forecast to 2028 (95% CI)",
+                "showTitle": true
+              },
+              "widgetType": "forecast-line",
+              "encodings": {
+                "x": {
+                  "fieldName": "ds",
+                  "displayName": "Month",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "original": {
+                    "fieldName": "brent_price",
+                    "displayName": "Brent Price (USD/bbl)"
+                  },
+                  "prediction": {
+                    "fieldName": "brent_price_forecast",
+                    "displayName": "Brent Price (USD/bbl) Forecast"
+                  },
+                  "predictionLower": {
+                    "fieldName": "brent_price_forecast_lower",
+                    "displayName": "Brent Price (USD/bbl) Forecast Lower"
+                  },
+                  "predictionUpper": {
+                    "fieldName": "brent_price_forecast_upper",
+                    "displayName": "Brent Price (USD/bbl) Forecast Upper"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#F4F6F7",
+        "dark": "#1A1A2E"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#16213E"
+      },
+      "widgetBorderColor": {
+        "light": "#D5D8DC",
+        "dark": "#2C3E50"
+      },
+      "visualizationColors": [
+        "#1B4F72",
+        "#C0392B",
+        "#2E86C1",
+        "#E67E22",
+        "#27AE60",
+        "#8E44AD",
+        "#F39C12",
+        "#16A085",
+        "#D35400",
+        "#2C3E50"
+      ],
+      "widgetHeaderAlignment": "LEFT",
+      "fontFamily": "Trebuchet MS"
+    },
+    "applyModeEnabled": false
+  }
+}

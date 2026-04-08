@@ -1,0 +1,31 @@
+command:
+  - "uvicorn"
+  - "backend.main:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+  - "--workers"
+  - "3"
+  - "--timeout-keep-alive"
+  - "30"
+
+env:
+  - name: DATABRICKS_WAREHOUSE_ID
+    value: "4c97f6c0eff73127"
+  - name: DATABRICKS_CATALOG
+    value: "danny_catalog"
+  - name: DATABRICKS_SCHEMA
+    value: "dem_schema"
+  - name: GENIE_SPACE_ID
+    value: "01f133504084159b8c6c2fb77fa2dbb2"
+  - name: FMAPI_MODEL
+    value: "databricks-claude-sonnet-4-6"
+  - name: LAKEBASE_HOST
+    value: "ep-nameless-cherry-d246iqlo.database.us-east-1.cloud.databricks.com"
+  - name: LAKEBASE_SCHEMA
+    value: "fuel"
+  - name: LAKEBASE_USER
+    value: "fuel_crisis_app"
+  - name: LAKEBASE_PASSWORD
+    value: "CHANGE_ME"

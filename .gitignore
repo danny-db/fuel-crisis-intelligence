@@ -1,4 +1,19 @@
+# Python
 __pycache__/
 *.pyc
+.venv/
+
+# Node
+fuel-crisis-app/frontend/node_modules/
+fuel-crisis-app/frontend/dist/
+
+# Databricks
+.databricks/
+.bundle/
+
+# OS
 .DS_Store
-dashboard_payload.json
+
+# Temp
+*.log
+/tmp/

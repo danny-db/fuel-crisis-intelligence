@@ -33,8 +33,14 @@ dbutils.library.restartPython()
 # COMMAND ----------
 
 # DBTITLE v1,Configuration & Helpers
-CATALOG = "danny_catalog"
-SCHEMA = "dem_schema"
+try:
+    CATALOG = dbutils.widgets.get("catalog")
+except Exception:
+    CATALOG = "danny_catalog"
+try:
+    SCHEMA = dbutils.widgets.get("schema")
+except Exception:
+    SCHEMA = "dem_schema"
 FULL_SCHEMA = f"{CATALOG}.{SCHEMA}"
 
 import os, requests, traceback

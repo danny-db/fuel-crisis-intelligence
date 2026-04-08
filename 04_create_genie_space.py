@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create the SA DEM Fuel Crisis Genie Space via REST API.
+Create the SA Fuel Crisis Intelligence Genie Space via REST API.
 """
 import subprocess
 import json
@@ -49,7 +49,7 @@ serialized_space = {
             {
                 "id": gen_id(),
                 "content": [
-                    "This Genie space supports fuel crisis intelligence analysis for the South Australian Department of Energy and Mining.\n",
+                    "This Genie space supports fuel crisis intelligence analysis for Australian energy security.\n",
                     "\n",
                     "Key tables:\n",
                     f"- {T}.aip_terminal_gate_prices: Annual average wholesale fuel prices (ULP, Diesel) by Australian city. Key columns: year_period, fuel_type, city, price_cpl (cents per litre).\n",

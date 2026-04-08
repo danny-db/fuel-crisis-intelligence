@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # SA DEM Fuel Crisis Intelligence - Data Ingestion & Analysis
+# MAGIC # Australian Fuel Crisis Intelligence - Data Ingestion & Analysis
 # MAGIC
 # MAGIC **Purpose:** Demonstrate how to ingest publicly available Australian fuel/energy datasets into Databricks using PySpark, then leverage AI (`ai_query`) for intelligent analysis.
 # MAGIC
@@ -116,7 +116,7 @@ def save_as_delta(df, table_name, description="table"):
     print(f"    {count:,} rows saved")
     return count
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {FULL_SCHEMA} COMMENT 'SA DEM - Fuel Crisis Intelligence'")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {FULL_SCHEMA} COMMENT 'Fuel Crisis Intelligence'")
 print(f"Schema {FULL_SCHEMA} ready")
 
 # COMMAND ----------
@@ -481,7 +481,7 @@ try:
         SELECT ai_query(
           'databricks-claude-sonnet-4-6',
           CONCAT(
-            'You are an energy analyst for the South Australian Department of Energy and Mining. ',
+            'You are an energy analyst advising the Australian government. ',
             'Analyze the following Adelaide fuel pricing data (annual averages in cents per litre) ',
             'and provide a concise executive summary of trends. Highlight any concerning patterns ',
             'for fuel crisis preparedness. Data: ',
@@ -539,7 +539,7 @@ try:
         SELECT ai_query(
           'databricks-claude-sonnet-4-6',
           CONCAT(
-            'You are an energy policy analyst for the SA Department of Energy and Mining. ',
+            'You are an energy policy analyst advising the Australian government. ',
             'These are the top greenhouse gas emitters in Australia from the NGER scheme. ',
             'Identify which are likely to have significant SA operations and explain ',
             'how a fuel crisis would impact them. Provide recommendations. Data: ',

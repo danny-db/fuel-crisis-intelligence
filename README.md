@@ -1,194 +1,145 @@
 # Australian Fuel Crisis Intelligence
 
-An end-to-end Databricks Lakehouse demo covering **national and state-level** Australian fuel crisis analysis — from public data ingestion to AI-powered insights, interactive dashboards, and natural language Q&A via Genie.
+An end-to-end Databricks demo that builds a **national fuel crisis intelligence platform** — from public data ingestion to AI-powered forecasting, interactive dashboards, natural language Q&A, and a geospatial command centre app.
 
-Built for the **South Australian Department of Energy and Mining (DEM)** and expandable to any Australian government agency.
+Demonstrates: **Unity Catalog, Lakeflow Jobs, AI/BI Dashboards, Genie Spaces, AI_FORECAST, FMAPI, Lakebase (PostGIS), Databricks Apps, and DABs.**
 
-## What This Demo Covers
+## Scenario
 
-1. **Data Ingestion** — Download public Excel/CSV/API datasets from Australian government sources using PySpark + pandas
-2. **AI Analysis** — Use `ai_query()` with foundation models to generate executive briefings and risk assessments
-3. **AI/BI Dashboards** — Lakeview dashboards for SA-specific and national fuel intelligence
-4. **Genie Spaces** — Natural language Q&A over fuel crisis data (SA + National)
-5. **Metric Views** — Standardized KPIs for fuel pricing, IEA reserve coverage
+An Iran-US military conflict disrupts Middle East oil exports. The Strait of Hormuz is threatened. Australia imports ~90% of its refined fuel. The Prime Minister needs answers NOW.
 
-## Data Sources
-
-### SA-Focused (Notebook 01)
-
-| Dataset | Source | Description |
-|---------|--------|-------------|
-| AIP Terminal Gate Prices | [aip.com.au](https://www.aip.com.au/historical-ulp-and-diesel-tgp-data) | Annual average wholesale fuel prices (ULP, Diesel) by Australian city |
-| Australian Petroleum Statistics | [data.gov.au](https://data.gov.au/data/dataset/australian-petroleum-statistics) | Monthly state-level fuel sales, stocks, imports, exports |
-| NGER Corporate Emissions | [cer.gov.au](https://cer.gov.au/markets/reports-and-data/nger-reporting-data-and-registers) | Greenhouse gas emissions by corporation (NGER scheme) |
-| SA Diesel Generation Plants | [data.sa.gov.au](https://data.sa.gov.au/data/dataset/diesel-generation-plants) | Diesel power generation infrastructure in SA |
-| SARIG Mineral Deposits | [catalog.sarig.sa.gov.au](https://catalog.sarig.sa.gov.au/dataset/mesac743) | SA mineral deposits/mines with geographic coordinates |
-
-### National Expansion (Notebook 02)
-
-| Dataset | Source | PM Question Answered |
-|---------|--------|---------------------|
-| Petroleum Imports by Country | [data.gov.au](https://data.gov.au/data/dataset/australian-petroleum-statistics) | Where does our fuel come from? |
-| Petroleum Exports by Country | data.gov.au | What are we exporting? |
-| OECD Fuel Price Comparison | data.gov.au | How do we compare internationally? |
-| IEA Days of Import Coverage | data.gov.au | How many days of reserves do we have? |
-| Petroleum Stock by Product | data.gov.au | Which fuel types are running low? |
-| Sales by State & Territory | data.gov.au | Which states consume the most fuel? |
-| Domestic Petroleum Production | data.gov.au | Are we producing enough domestically? |
-| Refinery Production | data.gov.au | What's our refinery output? |
-| NGER Electricity Sector | [cer.gov.au](https://cer.gov.au/markets/reports-and-data/nger-reporting-data-and-registers) | Which power stations depend on fuel? |
-| Geoscience AU Mineral Deposits | [Geoscience Australia WFS](https://services.ga.gov.au/gis/earthresource/ows) | Where are critical mining operations? |
-| Energy Statistics Table F | [energy.gov.au](https://www.energy.gov.au/energy-data/australian-energy-statistics) | Fuel consumption by state & industry |
-
-## Tables Created (~20 tables)
-
-### Core Tables (Notebook 01)
-
-| Table | Rows | Description |
-|-------|------|-------------|
-| `aip_terminal_gate_prices` | ~688 | Annual avg wholesale fuel prices by city and fuel type |
-| `petroleum_sales_by_state` | ~39,000 | Monthly petroleum sales (all sheets combined) |
-| `petroleum_stocks` | ~750 | Petroleum stock volumes |
-| `petroleum_supply` | ~750 | Production, refinery output |
-| `nger_corporate_emissions` | ~400 | Corporate scope 1/2 emissions |
-| `nger_state_emissions_by_industry` | ~400 | NGER register detail |
-
-### National Tables (Notebook 02)
-
-| Table | Rows | Description |
-|-------|------|-------------|
-| `petroleum_imports_by_country` | ~8,800 | Monthly imports by source country |
-| `petroleum_exports_by_country` | ~8,900 | Monthly exports by destination |
-| `petroleum_fuel_prices_oecd` | ~395 | Australia vs OECD price comparison |
-| `petroleum_au_fuel_prices` | ~64 | Quarterly domestic retail prices |
-| `petroleum_iea_days_coverage` | ~187 | IEA days of net import coverage |
-| `petroleum_stock_by_product` | ~187 | Stock levels by fuel product type |
-| `petroleum_sales_by_state_national` | ~1,300 | Sales by state (dedicated table) |
-| `petroleum_production` | ~187 | Domestic petroleum production |
-| `petroleum_refinery_production` | ~187 | Refinery output |
-| `nger_electricity_sector` | ~809 | Power station emissions + fuel types |
-| `geoscience_au_mineral_deposits` | ~5,000 | National mineral deposits (WFS) |
-
-## Quick Start
-
-### Prerequisites
-- A Databricks workspace with Unity Catalog enabled
-- A catalog and schema you have write access to
-- Serverless compute (recommended) or a SQL warehouse
-
-### 1. Run the SA Notebook
-
-```bash
-databricks workspace import /Users/<you>/sa-dem-fuel-crisis/01_fuel_crisis_ingestion \
-  --file 01_fuel_crisis_ingestion.py --format SOURCE --language PYTHON --overwrite \
-  --profile <your-profile>
-```
-
-Update the configuration cell with your catalog and schema, then run all cells.
-
-### 2. Run the National Notebook
-
-```bash
-databricks workspace import /Users/<you>/sa-dem-fuel-crisis/02_national_fuel_crisis_ingestion \
-  --file 02_national_fuel_crisis_ingestion.py --format SOURCE --language PYTHON --overwrite \
-  --profile <your-profile>
-```
-
-### 3. Create Dashboards
-
-Update config variables in `02_create_dashboard.py`, then:
-
-```bash
-python3 02_create_dashboard.py
-```
-
-Or import dashboard configs directly:
-
-```bash
-# SA Dashboard
-databricks api post /api/2.0/lakeview/dashboards \
-  --json "$(python3 -c "
-import json
-with open('dashboard_config.json') as f: d = json.load(f)
-d['warehouse_id'] = 'YOUR_WAREHOUSE_ID'
-d['parent_path'] = '/Users/you@company.com'
-print(json.dumps(d))
-")" --profile <your-profile>
-
-# National Dashboard
-databricks api post /api/2.0/lakeview/dashboards \
-  --json "$(python3 -c "
-import json
-with open('national_dashboard_config.json') as f: d = json.load(f)
-d['warehouse_id'] = 'YOUR_WAREHOUSE_ID'
-d['parent_path'] = '/Users/you@company.com'
-print(json.dumps(d))
-")" --profile <your-profile>
-```
-
-### 4. Create Metric Views & Genie Spaces
-
-```bash
-python3 03_create_metric_view.py
-python3 04_create_genie_space.py
-```
-
-## File Structure
-
-```
-├── 01_fuel_crisis_ingestion.py            # Notebook: SA data ingestion + AI analysis
-├── 02_national_fuel_crisis_ingestion.py   # Notebook: National data ingestion + AI briefing
-├── 02_create_dashboard.py                 # Script: create SA Lakeview dashboard
-├── 03_create_metric_view.py               # Script: create metric views
-├── 04_create_genie_space.py               # Script: create SA Genie space
-├── dashboard_config.json                  # Exported SA dashboard definition
-├── national_dashboard_config.json         # Exported National dashboard definition
-└── README.md
-```
-
-## Configuration
-
-The helper scripts use these variables — update for your environment:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PROFILE` | Databricks CLI profile | `my-workspace` |
-| `WAREHOUSE_ID` | SQL warehouse ID | `abcdef1234567890` |
-| `PARENT_PATH` | Workspace path for dashboard/Genie | `/Users/you@company.com` |
-| `CATALOG` | Unity Catalog name | `main` |
-| `SCHEMA` | Schema name | `fuel_crisis` |
+This platform answers: How exposed are we? What happens to prices? Which states go dark first? How many days of reserves do we have?
 
 ## Architecture
 
 ```
-Public Data Sources              Databricks Lakehouse                 Consumer Layer
-┌──────────────────────┐    ┌─────────────────────────────┐    ┌─────────────────────┐
-│ AIP (wholesale/retail│───▶│                             │───▶│ SA Dashboard        │
-│   fuel prices)       │    │  Unity Catalog              │    │ (4 pages)           │
-│                      │    │  ~20 Delta Tables           │    │                     │
-│ DCCEEW Petroleum     │───▶│                             │───▶│ National Dashboard  │
-│   Statistics (sales, │    │  ┌─────────────────────┐    │    │ (4 pages)           │
-│   stocks, imports,   │    │  │ Petroleum Stats     │    │    │                     │
-│   OECD prices)       │    │  │ NGER Emissions      │    │───▶│ SA Genie Space      │
-│                      │    │  │ Energy Statistics    │    │    │ (NL Q&A)            │
-│ CER NGER (corporate  │───▶│  │ Geoscience Deposits │    │    │                     │
-│   + electricity      │    │  └─────────────────────┘    │───▶│ National Genie Space│
-│   sector emissions)  │    │                             │    │ (14 tables, NL Q&A) │
-│                      │    │  ai_query() Analysis        │    │                     │
-│ Geoscience Australia │───▶│  (Claude Sonnet 4.6)        │───▶│ Metric Views        │
-│   (WFS mineral data) │    │                             │    │ (fuel pricing KPIs) │
-│                      │    │  Metric Views               │    │                     │
-│ SA Gov (diesel       │───▶│  (national + SA)            │    │                     │
-│   plants, SARIG)     │    └─────────────────────────────┘    └─────────────────────┘
-└──────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         DATABRICKS PLATFORM                            │
+│                                                                        │
+│  ┌──────────────┐    ┌──────────────┐    ┌───────────────────────────┐ │
+│  │ Lakeflow Jobs│    │ Unity Catalog│    │    Lakebase (PostGIS)     │ │
+│  │ (DAB-managed)│───▶│ 30+ Delta    │───▶│    Reverse ETL            │ │
+│  │              │    │ Tables       │    │    MVT Vector Tiles       │ │
+│  └──────────────┘    └──────┬───────┘    └───────────┬───────────────┘ │
+│                             │                        │                 │
+│         ┌───────────────────┼────────────────────────┤                 │
+│         ▼                   ▼                        ▼                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────────────────┐│
+│  │ AI/BI        │  │ Genie Space  │  │ Databricks App               ││
+│  │ Dashboard    │  │ (NL Q&A)     │  │ "Fuel Crisis Command Centre" ││
+│  │ (8 pages)    │  │ (21 tables)  │  │                              ││
+│  │              │  │              │  │ Map | Dashboard | Genie | AI ││
+│  └──────────────┘  └──────────────┘  └───────────────────────────────┘│
+│                                                                        │
+│  All deployed via Databricks Asset Bundles (DABs)                      │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+## Data Sources (All Free, No Auth Required)
+
+| Source | Data | Tables |
+|--------|------|--------|
+| FRED (Federal Reserve) | Brent crude oil prices, AUD/USD exchange rate | 2 |
+| EIA (US Energy Info) | OPEC production by country | 1 |
+| AIP (Australian Institute of Petroleum) | Wholesale + retail fuel prices | 3 |
+| DCCEEW (Petroleum Statistics) | Imports, exports, IEA reserves, sales, production | 11 |
+| CER (Clean Energy Regulator) | Corporate + electricity sector emissions | 3 |
+| Geoscience Australia (WFS) | Mineral deposits, fuel infrastructure | 4 |
+| ABS (SDMX) | CPI automotive fuel by city | 1 |
+| WA FuelWatch (RSS) | Station-level daily fuel prices | 1 |
+| RBA | Exchange rates (incl. Middle East currencies) | 1 |
+| AI_FORECAST() | ML-projected fuel prices + Brent crude | 2 |
+
+## Quick Start
+
+### Prerequisites
+
+- Databricks workspace with Unity Catalog
+- Databricks CLI configured (`databricks auth login`)
+- Node.js 18+ (for the app frontend build)
+
+### Deploy
+
+```bash
+# Clone
+git clone https://github.com/danny-db/fuel-crisis-intelligence.git
+cd fuel-crisis-intelligence
+
+# Configure your profile and variables
+export PROFILE=your-profile
+
+# Deploy the bundle (creates jobs + app)
+databricks bundle deploy -t demo --profile $PROFILE
+
+# Run the full E2E pipeline (ingest → dashboard → genie → lakebase)
+databricks bundle run full_pipeline -t demo --profile $PROFILE
+
+# Build and deploy the app frontend
+cd fuel-crisis-app/frontend && npm install && npm run build && cd ../..
+databricks apps deploy fuel-crisis-command-centre \
+  --source-code-path $(databricks bundle summary -t demo --profile $PROFILE | grep Path | awk '{print $2}')/files/fuel-crisis-app \
+  --profile $PROFILE
+```
+
+### Configuration
+
+All notebooks read parameters from DAB `base_parameters`. Override in `databricks.yml`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `catalog` | `danny_catalog` | Unity Catalog name |
+| `schema` | `dem_schema` | Schema for all tables |
+| `warehouse_id` | `4c97f6c0eff73127` | SQL warehouse ID |
+| `serving_endpoint` | `databricks-claude-sonnet-4-6` | FMAPI model endpoint |
+
+## File Structure
+
+```
+├── databricks.yml                     # DAB bundle (5 jobs + 1 app)
+├── 01_fuel_crisis_ingestion.py        # SA data ingestion (AIP, petroleum, NGER, minerals)
+├── 02_national_fuel_crisis_ingestion.py # National expansion (imports, OECD, IEA, QLD prices)
+├── 03_enrichment_ingestion.py         # Global enrichment (FRED, EIA, ABS, GA WFS) + AI_FORECAST
+├── 05_create_story_dashboard.py       # 8-page AI/BI Lakeview dashboard
+├── 06_create_enhanced_genie_space.py  # Genie space with 21 tables + data-rooms API
+├── 07_setup_lakebase_tiles.py         # Lakebase PostGIS reverse ETL for MVT tiles
+├── lakeview_builder.py                # Helper: programmatic Lakeview dashboard builder
+├── dashboard_story.lvdash.json        # Exported dashboard JSON (8 pages)
+├── DEMO_SCRIPT.md                     # 15-20 min meetup demo talking points
+└── fuel-crisis-app/                   # Databricks App (React + FastAPI)
+    ├── app.yaml                       # App config (command + env vars)
+    ├── requirements.txt               # Python deps
+    ├── backend/                        # FastAPI (metrics, infrastructure, genie, briefing, forecast)
+    └── frontend/                       # React 18 + TypeScript + MapLibre GL + Recharts + Tailwind
+```
+
+## Databricks App — Fuel Crisis Command Centre
+
+| Tab | Description | Data Source |
+|-----|-------------|-------------|
+| **Map** | Interactive map with refineries, terminals, WA fuel stations, mineral deposits, Strait of Hormuz | Lakebase PostGIS (GeoJSON) |
+| **Dashboard** | KPI cards + AI_FORECAST charts (Brent crude + fuel prices) | Databricks SQL + AI_FORECAST() |
+| **Genie** | Natural language Q&A with follow-up support + SQL display | Genie Conversation API |
+| **AI Briefing** | PM crisis briefing generated via FMAPI (Claude Sonnet) | FMAPI + Databricks SQL |
+
+## E2E Pipeline (Lakeflow Jobs)
+
+```
+sa_fuel_data → national_fuel_data → enrichment_data ─┬─ create_dashboard
+                                                      ├─ create_genie_space
+                                                      └─ setup_lakebase
+```
+
+All tasks use serverless compute with `base_parameters` for cross-workspace portability.
 
 ## Notes
 
-- **Serverless compute** is recommended (handles UC credential management automatically)
-- Government data source URLs may change — both notebooks handle download failures gracefully
-- Column names from Excel files are automatically sanitized for Delta Lake compatibility
-- NGER CSV files use Windows-1252 encoding (handled with `encoding='latin-1'`)
-- NGER numeric columns are stored as strings with commas — use `CAST(REPLACE(col, ',', '') AS BIGINT)` in queries
-- Geoscience Australia data is fetched via OGC WFS (Web Feature Service) returning GeoJSON
-- The IEA obligation for fuel reserves is 90 days of net import coverage
+- **Serverless compute**: Default for this workspace. For workspaces with egress restrictions, switch to classic clusters in `databricks.yml`
+- **Lakebase**: Uses INSERT-based reverse ETL. For production, use Sync Tables if you have `CREATE CATALOG` permissions
+- **FRED/EIA downloads**: Include retry logic (3 attempts with backoff) for network resilience
+- **Genie tables**: Attached via `PATCH /api/2.0/data-rooms/{space_id}` (not the public genie/spaces API)
+- **App credentials**: The app's service principal auto-authenticates via Databricks SDK. UC grants are applied by the pipeline.
+- **AI_FORECAST**: Uses Databricks built-in ML forecasting on real historical data (no synthetic projections)
+
+## License
+
+Internal demo — not for external distribution.

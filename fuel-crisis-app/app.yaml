@@ -28,4 +28,4 @@ env:
   - name: LAKEBASE_USER
     value: "fuel_crisis_app"
   - name: LAKEBASE_PASSWORD
-    value: "CHANGE_ME"
+    value: "CHANGE_ME"  # Set via: ALTER ROLE fuel_crisis_app WITH PASSWORD 'xxx' on Lakebase

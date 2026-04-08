@@ -142,4 +142,4 @@ All tasks use serverless compute with `base_parameters` for cross-workspace port
 
 ## License
 
-Internal demo — not for external distribution.
+Demo Only — not for distribution.
